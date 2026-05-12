@@ -1149,17 +1149,17 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-    A["Incoming Request"] --> B{Rate Limiter}
-    B -->|Over limit| C["429 Too Many Requests"]
-    B -->|OK| D{API Secret Check}
-    D -->|Invalid| E["401 Unauthorized"]
-    D -->|Valid| HMAC{HMAC Signature Check}
-    HMAC -->|Invalid| HE["401 Unauthorized"]
-    HMAC -->|Valid| F{Zod Validation}
-    F -->|Bad data| G["400 Bad Request"]
-    F -->|Clean| H{Business Logic}
-    H -->|Success| I["200 / 202 Response"]
-    H -->|Error| J["500 Error<br/>no details leaked"]
+    A[📥 Incoming Request] --> B{Rate Limiter}
+    B -->|❌ Over limit| C[429 Too Many Requests]
+    B -->|✅ OK| D{API Secret Check}
+    D -->|❌ Invalid| E[401 Unauthorized]
+    D -->|✅ Valid| HMAC{HMAC Signature Check}
+    HMAC -->|❌ Invalid| HE[401 Unauthorized]
+    HMAC -->|✅ Valid| F{Zod Validation}
+    F -->|❌ Bad data| G[400 Bad Request]
+    F -->|✅ Clean| H{Business Logic}
+    H -->|✅ Success| I[200/202 Response]
+    H -->|❌ Error| J[500 Error<br/>no details leaked]
 
     style C fill:#e74c3c,color:#fff
     style E fill:#e74c3c,color:#fff
@@ -1323,10 +1323,10 @@ flowchart LR
     A[git push] --> B[Heroku detects]
     B --> C[npm install]
     C --> D[tsc compile]
-    D -->|Error| E["Build fails<br/>Not deployed"]
-    D -->|Success| F["dist/ created"]
-    F --> G["node dist/index.js"]
-    G --> H["Live"]
+    D -->|❌ Error| E[Build fails<br/>Not deployed]
+    D -->|✅ Success| F[dist/ created]
+    F --> G[node dist/index.js]
+    G --> H[🟢 Live!]
 
     style E fill:#e74c3c,color:#fff
     style H fill:#27ae60,color:#fff
