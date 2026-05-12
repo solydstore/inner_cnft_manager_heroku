@@ -15,6 +15,10 @@
 </p>
 
 <p align="center">
+  🔗 <strong>Frontend (Inner Circle VIP Portal):</strong> <a href="https://github.com/solydstore/inner_circle_solyd_hackathon">solydstore/inner_circle_solyd_hackathon</a>
+</p>
+
+<p align="center">
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-what-does-this-thing-do">What Does It Do?</a> •
   <a href="#-architecture">Architecture</a> •
@@ -55,6 +59,7 @@
 - [Deployment](#-deployment)
 - [Local Development](#-local-development)
 - [Troubleshooting](#-troubleshooting)
+- [Related Repositories](#-related-repositories)
 - [Documentation Links](#-documentation-links)
 
 </details>
@@ -65,13 +70,13 @@
 
 > Onboarding tip: if you're a new hire, read this section first — it's the diff between this README and the one from a few weeks ago.
 
-| Date    | Change | Where to look |
-| :------ | :----- | :------------ |
-| 🏷️ Brand-prefix metadata | The minter now picks the NFT's name + URI from the **product's leading brand** (`BORN SOLYD`, `MONKE CONSOLE`, `KING BONK`, ...). Configurable per brand via `URI_<BRAND>` env vars. | [Brand Metadata Selection](#-brand-metadata-selection) · `src/services/minting.ts` |
-| 🌐 Website link on NFTs | Off-chain JSON templates in `metadata/` add `external_url: "https://solyd.store"` so wallets show the website. | [Off-Chain Metadata & Website Link](#-off-chain-metadata--website-link) · `metadata/born-solyd.json` |
-| 📬 MailerLite VIP sync | Wallet save → VIP MEMBERS group. Each mint recomputes rank (silver / purple / platina) based on total mints, single-rank invariant enforced. Fully optional. | [MailerLite VIP Sync](#-mailerlite-vip-sync) · `src/services/mailerlite.ts` |
-| 🏷️ Customer tagging | First wallet save tags the Shopify customer with `vip-activated`; that tag also re-fires the VIP MEMBERS subscription. | `src/services/wallet.ts`, `src/services/mailerlite.ts` |
-| 🔥 Burn authority documented | Soulbound cNFTs can only be burned by the **collection update authority** (= our minting wallet). Owners can't, by design. | [Burn Authority](#-burn-authority-who-can-destroy-a-soulbound-cnft) |
+| Date                         | Change                                                                                                                                                                               | Where to look                                                                                        |
+| :--------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
+| 🏷️ Brand-prefix metadata     | The minter now picks the NFT's name + URI from the **product's leading brand** (`BORN SOLYD`, `MONKE CONSOLE`, `KING BONK`, ...). Configurable per brand via `URI_<BRAND>` env vars. | [Brand Metadata Selection](#-brand-metadata-selection) · `src/services/minting.ts`                   |
+| 🌐 Website link on NFTs      | Off-chain JSON templates in `metadata/` add `external_url: "https://solyd.store"` so wallets show the website.                                                                       | [Off-Chain Metadata & Website Link](#-off-chain-metadata--website-link) · `metadata/born-solyd.json` |
+| 📬 MailerLite VIP sync       | Wallet save → VIP MEMBERS group. Each mint recomputes rank (silver / purple / platina) based on total mints, single-rank invariant enforced. Fully optional.                         | [MailerLite VIP Sync](#-mailerlite-vip-sync) · `src/services/mailerlite.ts`                          |
+| 🏷️ Customer tagging          | First wallet save tags the Shopify customer with `vip-activated`; that tag also re-fires the VIP MEMBERS subscription.                                                               | `src/services/wallet.ts`, `src/services/mailerlite.ts`                                               |
+| 🔥 Burn authority documented | Soulbound cNFTs can only be burned by the **collection update authority** (= our minting wallet). Owners can't, by design.                                                           | [Burn Authority](#-burn-authority-who-can-destroy-a-soulbound-cnft)                                  |
 
 ---
 
@@ -471,6 +476,8 @@ flowchart LR
         B4[Auto-refresh]
         B1 --> B2 --> B3 --> B4
     end
+
+    Old ~~~ New
 ```
 
 Shopify killed the old "legacy custom apps" on January 1, 2026. Every new app created after that date uses OAuth client credentials instead of a static token.
@@ -562,7 +569,7 @@ flowchart LR
 stateDiagram-v2
     [*] --> Unclaimed: Product Purchased
 
-    Unclaimed --> Validating: Customer clicks "Claim"
+    Unclaimed --> Validating: Customer clicks Claim
 
     Validating --> InProgress: All checks passed
     Validating --> Unclaimed: Something didn't add up
@@ -570,21 +577,21 @@ stateDiagram-v2
     InProgress --> Minting: Worker grabs the job
 
     Minting --> SettingSoulbound: cNFT created
-    Minting --> Failed: Blockchain hiccup (will retry)
+    Minting --> Failed: Blockchain hiccup will retry
 
-    SettingSoulbound --> Minted: All done! 🎉
-    SettingSoulbound --> Minted: NFT made but flag failed<br/>(still counts)
+    SettingSoulbound --> Minted: All done
+    SettingSoulbound --> Minted: NFT made but flag failed still counts
 
-    Failed --> InProgress: Retry (up to 3 times)
+    Failed --> InProgress: Retry up to 3 times
     Failed --> [*]: Gave up after 3 tries
 
     note right of Minting
-        mintV2() creates
+        mintV2 creates
         the NFT
     end note
 
     note right of SettingSoulbound
-        setNonTransferableV2()
+        setNonTransferableV2
         locks it forever
     end note
 ```
@@ -600,8 +607,8 @@ const { signature } = await mintV2(umi, {
   merkleTree,
   coreCollection,
   metadata: {
-    name: "BORN SOLYD",                    // ← matched brand prefix
-    uri: "https://arweave.net/...",        // ← URI_<BRAND> env var
+    name: "BORN SOLYD", // ← matched brand prefix
+    uri: "https://arweave.net/...", // ← URI_<BRAND> env var
     sellerFeeBasisPoints: 0,
     collection: some(coreCollection),
     creators: [{ address: authority, verified: true, share: 100 }],
@@ -639,17 +646,18 @@ flowchart LR
 ```
 
 **Key rules:**
+
 - Prefixes are sorted **longest-first**, so `MONKE CONSOLE` wins over `MONKE`. New brands? Add them to `BRAND_RULES` in `src/services/minting.ts`.
 - Each rule looks up `URI_<BRAND>` and `NAME_<BRAND>` env vars; if unset it falls back to a hardcoded default (e.g. BORN SOLYD has the Arweave URI baked in).
 - Matching is case-insensitive and ignores `_`/`-` differences.
 - If no prefix matches **and** `URI_DEFAULT` is unset, the mint deliberately throws so the queue retries — better than minting with the wrong artwork.
 
-| Brand prefix examples | Env vars |
-| :--- | :--- |
-| `BORN SOLYD` | `URI_BORN_SOLYD`, `NAME_BORN_SOLYD` |
+| Brand prefix examples                                          | Env vars                              |
+| :------------------------------------------------------------- | :------------------------------------ |
+| `BORN SOLYD`                                                   | `URI_BORN_SOLYD`, `NAME_BORN_SOLYD`   |
 | `MONKE CONSOLE`, `MONKE`, `MECHA MONKE`, `THE FUTURE IS MONKE` | `URI_MONKE_CONSOLE`, `URI_MONKE`, ... |
-| `KING BONK`, `THE BONK` | `URI_KING_BONK`, `URI_THE_BONK` |
-| `GENESIS`, `PUDGY`, `CLAYNO`, `SOLFLARE`, ... | `URI_GENESIS`, `URI_PUDGY`, ... |
+| `KING BONK`, `THE BONK`                                        | `URI_KING_BONK`, `URI_THE_BONK`       |
+| `GENESIS`, `PUDGY`, `CLAYNO`, `SOLFLARE`, ...                  | `URI_GENESIS`, `URI_PUDGY`, ...       |
 
 See `src/services/minting.ts → BRAND_RULES` for the full list.
 
@@ -710,10 +718,12 @@ flowchart TB
 ```
 
 **Why:**
+
 - `setNonTransferableV2` flags the leaf as non-transferable. Bubblegum V2 runs that lifecycle check on **both transfer and burn**, so the leaf owner's `burnV2` is rejected.
 - The **collection update authority** path of `burnV2` (signer = the wallet from `WALLET_SECRET_BASE64`) is intended for issuer cleanup and bypasses the non-transferable check.
 
 **To revoke / clean up an NFT:**
+
 1. **Hard burn:** call `burnV2` from the minting wallet with `collectionAuthority: signer`. Works while the leaf is still soulbound.
 2. **Let the owner burn it themselves:** first call `setNonTransferableV2(false)` on that specific leaf, then the owner can burn (they can also transfer it during that window — there's no burn-only override in Bubblegum V2 today).
 
@@ -754,6 +764,8 @@ flowchart TB
         S4[Instant updates]
         S5[Auto-cleanup]
     end
+
+    Before ~~~ After
 ```
 
 ### How events flow through the system
@@ -849,11 +861,11 @@ flowchart TB
 
 ### Rank thresholds
 
-| Rank | Default threshold | Env var |
-| :--- | :--- | :--- |
-| 🥈 Silver | ≥ 1 mint | `MAILERLITE_THRESHOLD_SILVER` |
-| 🟣 Purple | ≥ 5 mints | `MAILERLITE_THRESHOLD_PURPLE` |
-| 💎 Platina | ≥ 15 mints | `MAILERLITE_THRESHOLD_PLATINA` |
+| Rank       | Default threshold | Env var                        |
+| :--------- | :---------------- | :----------------------------- |
+| 🥈 Silver  | ≥ 1 mint          | `MAILERLITE_THRESHOLD_SILVER`  |
+| 🟣 Purple  | ≥ 5 mints         | `MAILERLITE_THRESHOLD_PURPLE`  |
+| 💎 Platina | ≥ 15 mints        | `MAILERLITE_THRESHOLD_PLATINA` |
 
 The thresholds must satisfy `silver < purple < platina` — server fails fast at boot if they don't.
 
@@ -885,13 +897,15 @@ See `src/services/mailerlite.ts` for the implementation.
 ```mermaid
 flowchart TB
     subgraph Without["❌ Without Queue"]
-        A1[1000 Requests] --> A2[Server tries all at once] --> A3[💥 Crashes]
+        A1[1000 Requests] --> A2[Server tries all at once] --> A3[Crashes]
     end
 
     subgraph With["✅ With Redis Queue"]
         B1[1000 Requests] --> B2[Drop in queue] --> B3[Return 202 to each]
         B4[Worker] --> B5[Process one by one] --> B6[Update status]
     end
+
+    Without ~~~ With
 ```
 
 | Challenge                   | How we solve it                |
@@ -931,9 +945,9 @@ stateDiagram-v2
     direction LR
     [*] --> Waiting: Job Added
     Waiting --> Active: Worker Available
-    Active --> Completed: Success ✅
-    Active --> Waiting: Retry (attempt < 3)
-    Active --> Failed: Max Retries ❌
+    Active --> Completed: Success
+    Active --> Waiting: Retry attempt
+    Active --> Failed: Max Retries Hit
     Completed --> [*]
     Failed --> [*]
 ```
@@ -968,6 +982,8 @@ flowchart LR
         R --> W4
         R --> W5
     end
+
+    Current ~~~ Scaled
 ```
 
 **Option 1:** More jobs at once in one dyno
@@ -1385,6 +1401,15 @@ heroku addons:open papertrail -a your-app
 1. Go to **Shopify Admin** > **Orders** > Your Order
 2. Find the `sbt.mint_data` metafield
 3. Change `mint_status` from `in_progress` to `unclaimed`
+
+---
+
+## 🔗 Related Repositories
+
+| Repo                                                                                                           | What it is                                                                                                                                                                                                                                                                                                              |
+| :------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖥️ **This repo** (`solyd-server`)                                                                              | Node.js / TypeScript / Express backend. Handles Shopify auth, Solana minting, the Redis queue, SSE event stream, and the MailerLite VIP sync. Runs on Heroku.                                                                                                                                                           |
+| 🌐 **[`solydstore/inner_circle_solyd_hackathon`](https://github.com/solydstore/inner_circle_solyd_hackathon)** | Next.js / React / TypeScript frontend for the **Inner Circle VIP Portal**. Hosts the post-purchase onboarding flow, Shopify customer auth (OAuth 2.0 + PKCE), wallet selection (Solana Wallet Adapter + Coinbase CDP embedded), and the live mint dashboard that consumes this server's SSE stream. Deployed on Vercel. |
 
 ---
 
