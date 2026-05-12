@@ -938,20 +938,6 @@ return {
 };
 ```
 
-### Job lifecycle
-
-```mermaid
-stateDiagram-v2
-    direction LR
-    [*] --> Waiting: Job Added
-    Waiting --> Active: Worker Available
-    Active --> Completed: Success
-    Active --> Waiting: Retry attempt
-    Active --> Failed: Max Retries Hit
-    Completed --> [*]
-    Failed --> [*]
-```
-
 ### Queue config
 
 ```typescript
@@ -1314,22 +1300,6 @@ git push heroku main
 # 7️⃣  Check it
 heroku logs --tail -a your-app-name
 curl https://your-app-name.herokuapp.com/api/health
-```
-
-### Deployment flow
-
-```mermaid
-flowchart LR
-    A[git push] --> B[Heroku detects]
-    B --> C[npm install]
-    C --> D[tsc compile]
-    D -->|Error| E["Build fails<br/>Not deployed"]
-    D -->|Success| F["dist/ created"]
-    F --> G["node dist/index.js"]
-    G --> H["Live"]
-
-    style E fill:#e74c3c,color:#fff
-    style H fill:#27ae60,color:#fff
 ```
 
 ---
